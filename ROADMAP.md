@@ -25,10 +25,10 @@ Garantir que toda a infraestrutura core está funcionando corretamente.
 - [x] Testar CRUD operations completo
 
 #### 1.2 - IPC Communication ✅ CRÍTICO
-- [ ] Validar todos os IPC handlers no main.ts
-- [ ] Testar comunicação renderer ↔ main
-- [ ] Implementar error handling nos handlers
-- [ ] Documentar API do contextBridge
+- [x] Validar todos os IPC handlers no main.ts
+- [x] Testar comunicação renderer ↔ main
+- [x] Implementar error handling nos handlers
+- [x] Documentar API do contextBridge
 
 #### 1.3 - UI Base ✅ CRÍTICO
 - [ ] Validar routing (Dashboard → Tasks → Timer)

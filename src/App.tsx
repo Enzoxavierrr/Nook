@@ -1,10 +1,21 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import Sidebar from './components/Sidebar/Sidebar'
 import Dashboard from './pages/Dashboard'
 import Tasks from './pages/Tasks'
 import TimerPage from './pages/TimerPage'
 
 export default function App() {
+  // Load IPC tester in dev mode
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      import('./utils/ipc-tester').then(({ testAllIPC }) => {
+        ;(window as any).testIPC = testAllIPC
+        console.log('💡 Dev Mode: Use window.testIPC() no console para testar IPC')
+      })
+    }
+  }, [])
+
   return (
     <BrowserRouter>
       <div
