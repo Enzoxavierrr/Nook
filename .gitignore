@@ -92,8 +92,3 @@ logs/
 # Electron Builder
 # ===========================
 electron-builder.env
-
-# ===========================
-# Project Documentation
-# ===========================
-ROADMAP.md
