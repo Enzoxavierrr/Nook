@@ -4,15 +4,23 @@ import Sidebar from './components/Sidebar/Sidebar'
 import Dashboard from './pages/Dashboard'
 import Tasks from './pages/Tasks'
 import TimerPage from './pages/TimerPage'
+import Projects from './pages/Projects'
+import Stats from './pages/Stats'
 
 export default function App() {
-  // Load IPC tester in dev mode
+  // Load dev tools in development mode
   useEffect(() => {
     if (import.meta.env.DEV) {
-      import('./utils/ipc-tester').then(({ testAllIPC }) => {
-        ;(window as any).testIPC = testAllIPC
-        console.log('💡 Dev Mode: Use window.testIPC() no console para testar IPC')
-      })
+      Promise.all([
+        import('./utils/ipc-tester').then(({ testAllIPC }) => {
+          ;(window as any).testIPC = testAllIPC
+          console.log('💡 Dev Mode: Use window.testIPC() para testar IPC')
+        }),
+        import('./utils/ui-tester').then(({ testUI }) => {
+          ;(window as any).testUI = testUI
+          console.log('💡 Dev Mode: Use window.testUI() para testar UI Base')
+        }),
+      ])
     }
   }, [])
 
@@ -33,8 +41,8 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/tasks"     element={<Tasks />} />
           <Route path="/timer"     element={<TimerPage />} />
-          <Route path="/projects"  element={<Tasks />} />
-          <Route path="/stats"     element={<TimerPage />} />
+          <Route path="/projects"  element={<Projects />} />
+          <Route path="/stats"     element={<Stats />} />
         </Routes>
       </div>
     </BrowserRouter>

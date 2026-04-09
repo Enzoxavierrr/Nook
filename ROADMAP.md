@@ -31,10 +31,10 @@ Garantir que toda a infraestrutura core está funcionando corretamente.
 - [x] Documentar API do contextBridge
 
 #### 1.3 - UI Base ✅ CRÍTICO
-- [ ] Validar routing (Dashboard → Tasks → Timer)
-- [ ] Garantir que Sidebar funciona corretamente
-- [ ] Implementar placeholder pages onde necessário
-- [ ] Testar responsividade (fullscreen, resize)
+- [x] Validar routing (Dashboard → Tasks → Timer)
+- [x] Garantir que Sidebar funciona corretamente
+- [x] Implementar placeholder pages onde necessário
+- [x] Testar responsividade (fullscreen, resize)
 
 ---
 
