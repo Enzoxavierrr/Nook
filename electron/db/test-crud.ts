@@ -3,102 +3,90 @@
  * Execute com: ts-node electron/db/test-crud.ts
  */
 
-import { getDatabase, persistDatabase, closeDatabase } from './database'
+import { getDatabase, closeDatabase } from './database'
 import { runMigrations } from './migrations'
 
-async function testCRUD() {
-  console.log('🧪 Starting CRUD tests...\n')
+function testCRUD() {
+  console.log('🧪 Iniciando testes CRUD...\n')
 
   try {
     // 1. Initialize database and migrations
-    console.log('1️⃣  Running migrations...')
-    await runMigrations()
-    console.log('   ✅ Migrations completed\n')
+    console.log('1️⃣  Executando migrations...')
+    runMigrations()
+    console.log('   ✅ Migrations completadas\n')
 
-    const db = await getDatabase()
+    const db = getDatabase()
 
     // 2. CREATE - Insert task
-    console.log('2️⃣  CREATE - Inserting task...')
-    const createStmt = db.prepare(`
+    console.log('2️⃣  CREATE - Inserindo tarefa...')
+    const result = db.prepare(`
       INSERT INTO tasks (title, description, date, estimated_time, category)
       VALUES (?, ?, ?, ?, ?)
-    `)
-    createStmt.bind(['Test Task', 'Test Description', '2026-04-10', 60, 'Test'])
-    createStmt.step()
-    const taskId = (db as any).exec('SELECT last_insert_rowid() as id')[0]?.values[0]?.[0]
-    persistDatabase()
-    console.log(`   ✅ Task created with ID: ${taskId}\n`)
+    `).run('Test Task', 'Test Description', '2026-04-10', 60, 'Test')
+
+    const taskId = result.lastInsertRowid
+    console.log(`   ✅ Tarefa criada com ID: ${taskId}\n`)
 
     // 3. READ - Get task by ID
-    console.log('3️⃣  READ - Fetching task by ID...')
-    const readStmt = db.prepare('SELECT * FROM tasks WHERE id = ?')
-    const rows = readStmt.getAsObject([taskId])
-    if (rows && rows.length > 0) {
-      console.log('   ✅ Task found:', rows[0])
+    console.log('3️⃣  READ - Buscando tarefa por ID...')
+    const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(taskId)
+    if (task) {
+      console.log('   ✅ Tarefa encontrada:', task)
     } else {
-      console.log('   ❌ Task not found')
+      console.log('   ❌ Tarefa não encontrada')
     }
     console.log()
 
     // 4. UPDATE - Modify task
-    console.log('4️⃣  UPDATE - Updating task...')
-    const updateStmt = db.prepare(`
+    console.log('4️⃣  UPDATE - Atualizando tarefa...')
+    db.prepare(`
       UPDATE tasks
       SET title = ?, description = ?, status = ?
       WHERE id = ?
-    `)
-    updateStmt.bind(['Updated Task', 'Updated Description', 'in_progress', taskId])
-    updateStmt.step()
-    persistDatabase()
+    `).run('Updated Task', 'Updated Description', 'in_progress', taskId)
 
-    const updatedRows = db.prepare('SELECT * FROM tasks WHERE id = ?').getAsObject([taskId])
-    console.log('   ✅ Task updated:', updatedRows[0])
+    const updatedTask = db.prepare('SELECT * FROM tasks WHERE id = ?').get(taskId)
+    console.log('   ✅ Tarefa atualizada:', updatedTask)
     console.log()
 
     // 5. CREATE - Time session
-    console.log('5️⃣  CREATE - Starting time session...')
-    const sessionStmt = db.prepare('INSERT INTO time_sessions (task_id) VALUES (?)')
-    sessionStmt.bind([taskId])
-    sessionStmt.step()
-    const sessionId = (db as any).exec('SELECT last_insert_rowid() as id')[0]?.values[0]?.[0]
-    persistDatabase()
-    console.log(`   ✅ Session created with ID: ${sessionId}\n`)
+    console.log('5️⃣  CREATE - Iniciando sessão de tempo...')
+    const sessionResult = db.prepare('INSERT INTO time_sessions (task_id) VALUES (?)').run(taskId)
+    const sessionId = sessionResult.lastInsertRowid
+    console.log(`   ✅ Sessão criada com ID: ${sessionId}\n`)
 
     // 6. READ - Get sessions by task
-    console.log('6️⃣  READ - Fetching sessions by task ID...')
-    const sessionsRows = db.prepare('SELECT * FROM time_sessions WHERE task_id = ?').getAsObject([taskId])
-    console.log(`   ✅ Found ${sessionsRows.length} session(s)`)
+    console.log('6️⃣  READ - Buscando sessões por ID da tarefa...')
+    const sessions = db.prepare('SELECT * FROM time_sessions WHERE task_id = ?').all(taskId)
+    console.log(`   ✅ Encontradas ${sessions.length} sessão(ões)`)
     console.log()
 
     // 7. DELETE - Remove task
-    console.log('7️⃣  DELETE - Removing task...')
-    const deleteStmt = db.prepare('DELETE FROM tasks WHERE id = ?')
-    deleteStmt.bind([taskId])
-    deleteStmt.step()
-    persistDatabase()
-    console.log('   ✅ Task deleted\n')
+    console.log('7️⃣  DELETE - Removendo tarefa...')
+    db.prepare('DELETE FROM tasks WHERE id = ?').run(taskId)
+    console.log('   ✅ Tarefa deletada\n')
 
     // 8. Verify deletion
-    console.log('8️⃣  VERIFY - Checking if task is deleted...')
-    const deletedRows = db.prepare('SELECT * FROM tasks WHERE id = ?').getAsObject([taskId])
-    if (deletedRows.length === 0) {
-      console.log('   ✅ Task successfully deleted\n')
+    console.log('8️⃣  VERIFY - Verificando se tarefa foi deletada...')
+    const deletedTask = db.prepare('SELECT * FROM tasks WHERE id = ?').get(taskId)
+    if (!deletedTask) {
+      console.log('   ✅ Tarefa deletada com sucesso\n')
     } else {
-      console.log('   ❌ Task still exists\n')
+      console.log('   ❌ Tarefa ainda existe\n')
     }
 
     // 9. List all tasks
-    console.log('9️⃣  LIST - All remaining tasks...')
-    const allTasks = db.prepare('SELECT * FROM tasks').getAsObject([])
-    console.log(`   ✅ Total tasks: ${allTasks.length}`)
+    console.log('9️⃣  LIST - Todas as tarefas restantes...')
+    const allTasks = db.prepare('SELECT * FROM tasks').all()
+    console.log(`   ✅ Total de tarefas: ${allTasks.length}`)
     if (allTasks.length > 0) {
-      console.log('   Tasks:', allTasks)
+      console.log('   Tarefas:', allTasks)
     }
     console.log()
 
-    console.log('✨ All tests completed!')
+    console.log('✨ Todos os testes completados!')
   } catch (error) {
-    console.error('❌ Test failed:', error)
+    console.error('❌ Teste falhou:', error)
   } finally {
     closeDatabase()
   }

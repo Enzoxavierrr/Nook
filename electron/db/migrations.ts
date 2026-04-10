@@ -1,15 +1,16 @@
-import { getDatabase, persistDatabase } from './database'
+import { getDatabase } from './database'
+import Database from 'better-sqlite3'
 
 const MIGRATIONS: Array<{
   version: number
   name: string
-  up: (db: any) => void
+  up: (db: Database.Database) => void
 }> = [
   {
     version: 1,
     name: 'create_tasks_and_sessions_tables',
-    up: (db: any) => {
-      db.run(`
+    up: (db: Database.Database) => {
+      db.exec(`
         CREATE TABLE IF NOT EXISTS tasks (
           id             INTEGER PRIMARY KEY AUTOINCREMENT,
           title          TEXT    NOT NULL,
@@ -40,11 +41,11 @@ const MIGRATIONS: Array<{
   },
 ]
 
-export async function runMigrations(): Promise<void> {
-  const db = await getDatabase()
+export function runMigrations(): void {
+  const db = getDatabase()
 
   // Criar tabela de migrations se não existir
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
       version INTEGER PRIMARY KEY,
       name    TEXT NOT NULL,
@@ -55,21 +56,19 @@ export async function runMigrations(): Promise<void> {
   // Executar migrations pendentes
   for (const migration of MIGRATIONS) {
     // Verificar se migration já foi executada
-    const result = db
+    const existing = db
       .prepare('SELECT version FROM schema_migrations WHERE version = ?')
-      .getAsObject([migration.version])
+      .get(migration.version)
 
-    if (result.length === 0) {
+    if (!existing) {
       console.log(`📦 Running migration ${migration.version}: ${migration.name}`)
       migration.up(db)
 
       // Registrar migration como executada
-      db.prepare('INSERT INTO schema_migrations (version, name) VALUES (?, ?)').bind([
+      db.prepare('INSERT INTO schema_migrations (version, name) VALUES (?, ?)').run(
         migration.version,
         migration.name,
-      ]).step()
+      )
     }
   }
-
-  persistDatabase()
 }

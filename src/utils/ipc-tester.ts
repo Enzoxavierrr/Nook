@@ -110,10 +110,10 @@ export async function testAllIPC() {
     console.log('\n⏱️  Testando Time Sessions API...')
 
     // START SESSION
-    let sessionId: number
+    let sessionId: number | null = null
     try {
       const session = await window.nook.startSession(taskId)
-      sessionId = session.id
+      sessionId = (session as any).id
       log('startSession', 'PASS', `Sessão iniciada com ID: ${sessionId}`)
     } catch (error) {
       log('startSession', 'FAIL', 'Erro ao iniciar sessão', error)
@@ -123,15 +123,17 @@ export async function testAllIPC() {
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
     // END SESSION
-    try {
-      const session = await window.nook.endSession(sessionId)
-      if (session.endedAt) {
-        log('endSession', 'PASS', 'Sessão finalizada com timestamp')
-      } else {
-        log('endSession', 'FAIL', 'Sessão não tem endedAt')
+    if (sessionId !== null) {
+      try {
+        const session = await window.nook.endSession(sessionId)
+        if ((session as any).endedAt) {
+          log('endSession', 'PASS', 'Sessão finalizada com timestamp')
+        } else {
+          log('endSession', 'FAIL', 'Sessão não tem endedAt')
+        }
+      } catch (error) {
+        log('endSession', 'FAIL', 'Erro ao finalizar sessão', error)
       }
-    } catch (error) {
-      log('endSession', 'FAIL', 'Erro ao finalizar sessão', error)
     }
 
     // GET SESSIONS

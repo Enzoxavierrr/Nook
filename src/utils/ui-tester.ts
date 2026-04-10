@@ -69,10 +69,7 @@ export async function testUI() {
   // ─── Test 6: Responsive font sizes ─────────────────────
   const headings = document.querySelectorAll('h1, h2, h3')
   if (headings.length > 0) {
-    const sizes = Array.from(headings)
-      .map((h) => window.getComputedStyle(h).fontSize)
-      .filter((size) => size !== '16px') // Default
-    log('Tipografia', 'PASS', `${headings.length} headings encontrados com sizes customizados`)
+    log('Tipografia', 'PASS', `${headings.length} headings encontrados com styles aplicados`)
   } else {
     log('Tipografia', 'FAIL', 'Nenhum heading encontrado')
   }

@@ -1,17 +1,44 @@
 import { app, BrowserWindow, ipcMain, Notification } from 'electron'
 import path from 'path'
 import { getDatabase, closeDatabase } from './db/database'
-import { runMigrations } from './db/schema'
+import { runMigrations } from './db/migrations'
+
+// Define app name
+app.setName('Nook')
+
+// Prevenir múltiplas instâncias
+const gotTheLock = app.requestSingleInstanceLock()
+if (!gotTheLock) {
+  app.quit()
+}
+
+let mainWindow: BrowserWindow | null = null
 
 // ─── Window ────────────────────────────────────────────────
 function createWindow() {
-  const win = new BrowserWindow({
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.show()
+    mainWindow.focus()
+    return
+  }
+
+  const iconPath = path.join(__dirname, '../public/icon.png')
+
+  // macOS: setar ícone no dock
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.setIcon(iconPath)
+  }
+
+  mainWindow = new BrowserWindow({
     width: 1100,
     height: 720,
     minWidth: 800,
     minHeight: 600,
+    show: false,
+    title: 'Nook',
     titleBarStyle: 'hiddenInset', // macOS native feel
     backgroundColor: '#0f0f0f',
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -20,20 +47,32 @@ function createWindow() {
   })
 
   if (process.env.VITE_DEV_SERVER_URL) {
-    win.loadURL(process.env.VITE_DEV_SERVER_URL)
+    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL)
   } else {
-    win.loadFile(path.join(__dirname, '../dist/index.html'))
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))
   }
+
+  mainWindow.setTitle('Nook')
+
+  mainWindow.show()
+
+  mainWindow.on('closed', () => {
+    mainWindow = null
+  })
 }
 
 // ─── App lifecycle ──────────────────────────────────────────
-app.whenReady().then(async () => {
-  await runMigrations()
+app.whenReady().then(() => {
+  runMigrations()
   registerIpcHandlers()
   createWindow()
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    createWindow()
+  })
+
+  app.on('second-instance', () => {
+    createWindow()
   })
 })
 
@@ -45,108 +84,104 @@ app.on('window-all-closed', () => {
 // ─── IPC Handlers ───────────────────────────────────────────
 function registerIpcHandlers() {
   // Tasks
-  ipcMain.handle('tasks:getAll', async () => {
+  ipcMain.handle('tasks:getAll', () => {
     try {
-      const db = await getDatabase()
-      const result = db.prepare('SELECT * FROM tasks ORDER BY date ASC, created_at DESC').all()
-      return result
+      const db = getDatabase()
+      return db.prepare('SELECT * FROM tasks ORDER BY date ASC, created_at DESC').all()
     } catch (error) {
-      console.error('Error fetching tasks:', error)
+      console.error('Erro ao buscar tarefas:', error)
       throw error
     }
   })
 
-  ipcMain.handle('tasks:getById', async (_e, id: number) => {
+  ipcMain.handle('tasks:getById', (_e, id: number) => {
     try {
-      const db = await getDatabase()
-      return db.prepare('SELECT * FROM tasks WHERE id = ?').get([id])
+      const db = getDatabase()
+      return db.prepare('SELECT * FROM tasks WHERE id = ?').get(id)
     } catch (error) {
-      console.error(`Error fetching task ${id}:`, error)
+      console.error(`Erro ao buscar tarefa ${id}:`, error)
       throw error
     }
   })
 
-  ipcMain.handle('tasks:create', async (_e, input) => {
+  ipcMain.handle('tasks:create', (_e, input) => {
     try {
-      const db = await getDatabase()
-      const stmt = db.prepare(`
+      const db = getDatabase()
+      const result = db.prepare(`
         INSERT INTO tasks (title, description, date, estimated_time, category)
-        VALUES (@title, @description, @date, @estimatedTime, @category)
-      `)
-      const result = stmt.bind(input).step()
-      const id = (db as any).exec('SELECT last_insert_rowid() as id')[0]?.values[0]?.[0]
+        VALUES (?, ?, ?, ?, ?)
+      `).run(
+        input.title,
+        input.description,
+        input.date,
+        input.estimatedTime,
+        input.category,
+      )
 
-      persistDatabase()
-      return db.prepare('SELECT * FROM tasks WHERE id = ?').get([id])
+      return db.prepare('SELECT * FROM tasks WHERE id = ?').get(result.lastInsertRowid)
     } catch (error) {
-      console.error('Error creating task:', error)
+      console.error('Erro ao criar tarefa:', error)
       throw error
     }
   })
 
-  ipcMain.handle('tasks:update', async (_e, id: number, input) => {
+  ipcMain.handle('tasks:update', (_e, id: number, input) => {
     try {
-      const db = await getDatabase()
+      const db = getDatabase()
       const fields = Object.keys(input)
-        .map((k) => `${k} = @${k}`)
+        .map((k) => `${k} = ?`)
         .join(', ')
-      db.prepare(`UPDATE tasks SET ${fields} WHERE id = @id`).bind({ ...input, id }).step()
+      const values = Object.values(input)
 
-      persistDatabase()
-      return db.prepare('SELECT * FROM tasks WHERE id = ?').get([id])
+      db.prepare(`UPDATE tasks SET ${fields} WHERE id = ?`).run(...values, id)
+      return db.prepare('SELECT * FROM tasks WHERE id = ?').get(id)
     } catch (error) {
-      console.error(`Error updating task ${id}:`, error)
+      console.error(`Erro ao atualizar tarefa ${id}:`, error)
       throw error
     }
   })
 
-  ipcMain.handle('tasks:delete', async (_e, id: number) => {
+  ipcMain.handle('tasks:delete', (_e, id: number) => {
     try {
-      const db = await getDatabase()
-      db.prepare('DELETE FROM tasks WHERE id = ?').bind([id]).step()
-
-      persistDatabase()
+      const db = getDatabase()
+      db.prepare('DELETE FROM tasks WHERE id = ?').run(id)
       return { success: true }
     } catch (error) {
-      console.error(`Error deleting task ${id}:`, error)
+      console.error(`Erro ao deletar tarefa ${id}:`, error)
       throw error
     }
   })
 
-  ipcMain.handle('tasks:complete', async (_e, id: number) => {
+  ipcMain.handle('tasks:complete', (_e, id: number) => {
     try {
-      const db = await getDatabase()
-      db.prepare("UPDATE tasks SET status = 'completed' WHERE id = ?").bind([id]).step()
-
-      persistDatabase()
-      return db.prepare('SELECT * FROM tasks WHERE id = ?').get([id])
+      const db = getDatabase()
+      db.prepare("UPDATE tasks SET status = 'completed' WHERE id = ?").run(id)
+      return db.prepare('SELECT * FROM tasks WHERE id = ?').get(id)
     } catch (error) {
-      console.error(`Error completing task ${id}:`, error)
+      console.error(`Erro ao completar tarefa ${id}:`, error)
       throw error
     }
   })
 
   // Time Sessions
-  ipcMain.handle('sessions:start', async (_e, taskId?: number) => {
+  ipcMain.handle('sessions:start', (_e, taskId?: number) => {
     try {
-      const db = await getDatabase()
+      const db = getDatabase()
       const result = db
         .prepare('INSERT INTO time_sessions (task_id) VALUES (?)')
-        .bind([taskId ?? null]).step()
-      const sessionId = (db as any).exec('SELECT last_insert_rowid() as id')[0]?.values[0]?.[0]
+        .run(taskId ?? null)
 
-      persistDatabase()
-      return db.prepare('SELECT * FROM time_sessions WHERE id = ?').get([sessionId])
+      return db.prepare('SELECT * FROM time_sessions WHERE id = ?').get(result.lastInsertRowid)
     } catch (error) {
-      console.error('Error starting session:', error)
+      console.error('Erro ao iniciar sessão:', error)
       throw error
     }
   })
 
-  ipcMain.handle('sessions:end', async (_e, sessionId: number) => {
+  ipcMain.handle('sessions:end', (_e, sessionId: number) => {
     try {
-      const db = await getDatabase()
-      db.prepare("UPDATE time_sessions SET ended_at = datetime('now') WHERE id = ?").bind([sessionId]).step()
+      const db = getDatabase()
+      db.prepare("UPDATE time_sessions SET ended_at = datetime('now') WHERE id = ?").run(sessionId)
 
       // Atualiza o tempo gasto na tarefa vinculada
       db.prepare(`
@@ -157,40 +192,39 @@ function registerIpcHandlers() {
           WHERE task_id = tasks.id AND ended_at IS NOT NULL
         )
         WHERE id = (SELECT task_id FROM time_sessions WHERE id = ?)
-      `).bind([sessionId]).step()
+      `).run(sessionId)
 
-      persistDatabase()
-      return db.prepare('SELECT * FROM time_sessions WHERE id = ?').get([sessionId])
+      return db.prepare('SELECT * FROM time_sessions WHERE id = ?').get(sessionId)
     } catch (error) {
-      console.error(`Error ending session ${sessionId}:`, error)
+      console.error(`Erro ao finalizar sessão ${sessionId}:`, error)
       throw error
     }
   })
 
-  ipcMain.handle('sessions:getByTask', async (_e, taskId: number) => {
+  ipcMain.handle('sessions:getByTask', (_e, taskId: number) => {
     try {
-      const db = await getDatabase()
-      return db.prepare('SELECT * FROM time_sessions WHERE task_id = ? ORDER BY started_at DESC').all([taskId])
+      const db = getDatabase()
+      return db.prepare('SELECT * FROM time_sessions WHERE task_id = ? ORDER BY started_at DESC').all(taskId)
     } catch (error) {
-      console.error(`Error fetching sessions for task ${taskId}:`, error)
+      console.error(`Erro ao buscar sessões da tarefa ${taskId}:`, error)
       throw error
     }
   })
 
   // Notifications
-  ipcMain.handle('notifications:schedule', async (_e, taskId: number) => {
+  ipcMain.handle('notifications:schedule', (_e, taskId: number) => {
     try {
-      const db = await getDatabase()
-      const rows = db.prepare('SELECT * FROM tasks WHERE id = ?').getAsObject(taskId)
-      if (!rows || rows.length === 0) return
+      const db = getDatabase()
+      const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(taskId)
 
-      const task = rows[0] as any
+      if (!task) return
+
       new Notification({
         title: '📌 Nook — Lembrete',
         body: `Amanhã você tem: "${task.title}"`,
       }).show()
     } catch (error) {
-      console.error(`Error scheduling notification for task ${taskId}:`, error)
+      console.error(`Erro ao agendar notificação para tarefa ${taskId}:`, error)
       throw error
     }
   })
