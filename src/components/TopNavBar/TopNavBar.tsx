@@ -1,6 +1,10 @@
 import { Search, Bell, Settings2 } from 'lucide-react'
 
-export default function TopNavBar() {
+interface Props {
+  placeholder?: string
+}
+
+export default function TopNavBar({ placeholder = 'Buscar tarefas...' }: Props) {
   return (
     <header
       style={{
@@ -8,19 +12,20 @@ export default function TopNavBar() {
         top: 0,
         zIndex: 50,
         width: '100%',
-        height: 36,
+        height: 56,
         background: 'rgba(19, 19, 19, 0.60)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingLeft: 32,
         paddingRight: 32,
+        flexShrink: 0,
       }}
     >
-      {/* Search */}
-      <div style={{ position: 'relative', width: 448 }}>
+      {/* Busca */}
+      <div style={{ position: 'relative', maxWidth: 320, flex: 1 }}>
         <Search
           size={13}
           color="#6b7280"
@@ -28,7 +33,7 @@ export default function TopNavBar() {
         />
         <input
           type="text"
-          placeholder="Search tasks..."
+          placeholder={placeholder}
           style={{
             width: '100%',
             background: 'transparent',
@@ -42,25 +47,22 @@ export default function TopNavBar() {
         />
       </div>
 
-      {/* Right actions */}
+      {/* Ações direita */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-        {/* Bell with notification dot */}
         <div style={{ position: 'relative' }}>
-          <Bell size={16} color="#6b7280" />
-          <span
-            style={{
-              position: 'absolute',
-              top: -2,
-              right: -2,
-              width: 8,
-              height: 8,
-              borderRadius: 9999,
-              background: '#494bd6',
-              border: '1.5px solid #131313',
-            }}
-          />
+          <Bell size={16} color="#6b7280" style={{ cursor: 'pointer' }} />
+          <span style={{
+            position: 'absolute',
+            top: -2,
+            right: -2,
+            width: 8,
+            height: 8,
+            borderRadius: 9999,
+            background: '#494bd6',
+            border: '1.5px solid #131313',
+          }} />
         </div>
-        <Settings2 size={16} color="#6b7280" />
+        <Settings2 size={16} color="#6b7280" style={{ cursor: 'pointer' }} />
       </div>
     </header>
   )
