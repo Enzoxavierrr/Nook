@@ -10,6 +10,7 @@ import {
   Label,
 } from '@/components/ui'
 import { useTasks } from '@/hooks/use-tasks'
+import { toast } from 'sonner'
 import type { Task } from '@/types'
 
 interface TaskDialogProps {
@@ -41,6 +42,16 @@ export function TaskDialog({ open, onOpenChange, task, listId }: TaskDialogProps
     e.preventDefault()
     if (!title.trim()) return
 
+    if (title.trim().length > 255) {
+      toast.error('O título não pode ter mais de 255 caracteres')
+      return
+    }
+
+    if (description.trim().length > 2000) {
+      toast.error('A descrição não pode ter mais de 2000 caracteres')
+      return
+    }
+
     setLoading(true)
 
     if (isEditing) {
@@ -69,6 +80,7 @@ export function TaskDialog({ open, onOpenChange, task, listId }: TaskDialogProps
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="O que você precisa fazer?"
                 autoFocus
+                maxLength={255}
               />
             </div>
             <div className="space-y-2">
@@ -78,6 +90,7 @@ export function TaskDialog({ open, onOpenChange, task, listId }: TaskDialogProps
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Adicione mais detalhes..."
+                maxLength={2000}
               />
             </div>
           </div>

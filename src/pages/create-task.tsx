@@ -65,6 +65,16 @@ export function CreateTaskPage() {
       return
     }
 
+    if (formData.name.trim().length > 255) {
+      toast.error('O título não pode ter mais de 255 caracteres')
+      return
+    }
+
+    if (formData.description.trim().length > 2000) {
+      toast.error('A descrição não pode ter mais de 2000 caracteres')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -173,6 +183,7 @@ export function CreateTaskPage() {
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     className="h-12 font-[Poppins]"
+                    maxLength={255}
                   />
                 </div>
                 
@@ -186,6 +197,7 @@ export function CreateTaskPage() {
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                     className="min-h-[100px] font-[Poppins]"
+                    maxLength={2000}
                   />
                 </div>
               </CardContent>

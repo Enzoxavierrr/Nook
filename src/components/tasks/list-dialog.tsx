@@ -10,6 +10,7 @@ import {
   Label,
 } from '@/components/ui'
 import { useLists } from '@/hooks/use-lists'
+import { toast } from 'sonner'
 import { LIST_COLORS } from '@/types'
 import { cn } from '@/lib/utils'
 import type { List } from '@/types'
@@ -42,6 +43,11 @@ export function ListDialog({ open, onOpenChange, list }: ListDialogProps) {
     e.preventDefault()
     if (!name.trim()) return
 
+    if (name.trim().length > 50) {
+      toast.error('O nome da lista não pode ter mais de 50 caracteres')
+      return
+    }
+
     setLoading(true)
 
     if (isEditing) {
@@ -70,6 +76,7 @@ export function ListDialog({ open, onOpenChange, list }: ListDialogProps) {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex: Trabalho, Pessoal, Estudos..."
                 autoFocus
+                maxLength={50}
               />
             </div>
             <div className="space-y-2">
