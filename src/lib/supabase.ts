@@ -28,7 +28,7 @@ export const supabase = isValidConfig
         storage: typeof window !== 'undefined' ? window.localStorage : undefined,
       },
     })
-  : (null as any)
+  : null
 
 export const isSupabaseConfigured = isValidConfig
 

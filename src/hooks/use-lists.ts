@@ -22,7 +22,7 @@ export function useLists() {
       return
     }
 
-    if (!isSupabaseConfigured || !user) {
+    if (!isSupabaseConfigured || !supabase || !user) {
       setLocalLists([])
       setLoading(false)
       return
@@ -52,7 +52,7 @@ export function useLists() {
   }, [user, isGuestMode])
 
   const fetchLists = async () => {
-    if (!user || isGuestMode) return
+    if (!user || isGuestMode || !supabase) return
 
     const { data, error } = await supabase
       .from('lists')
@@ -86,7 +86,7 @@ export function useLists() {
       return { data: newList, error: null }
     }
 
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase!
       .from('lists')
       .insert({ user_id: user.id, name, color })
       .select()
@@ -113,7 +113,7 @@ export function useLists() {
       prevLists.map((list) => (list.id === id ? { ...list, ...updates } : list))
     )
 
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase!
       .from('lists')
       .update(updates)
       .eq('id', id)
@@ -140,7 +140,7 @@ export function useLists() {
 
     setLocalLists((prevLists) => prevLists.filter((list) => list.id !== id))
 
-    const { error } = await supabase.from('lists').delete().eq('id', id)
+    const { error } = await supabase!.from('lists').delete().eq('id', id)
 
     if (error) {
       fetchLists()

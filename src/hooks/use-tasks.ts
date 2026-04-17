@@ -22,7 +22,7 @@ export function useTasks(listId?: string | null) {
       return
     }
 
-    if (!isSupabaseConfigured || !user) {
+    if (!isSupabaseConfigured || !supabase || !user) {
       setLocalTasks([])
       setLoading(false)
       return
@@ -52,7 +52,7 @@ export function useTasks(listId?: string | null) {
   }, [user, listId, isGuestMode])
 
   const fetchTasks = async () => {
-    if (!user || isGuestMode) return
+    if (!user || isGuestMode || !supabase) return
 
     let query = supabase
       .from('tasks')
@@ -144,7 +144,7 @@ export function useTasks(listId?: string | null) {
           deadline: taskData.deadline || null,
         }
 
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase!
       .from('tasks')
       .insert(insertData)
       .select()
@@ -172,7 +172,7 @@ export function useTasks(listId?: string | null) {
       prevTasks.map((task) => (task.id === id ? { ...task, ...updates } : task))
     )
 
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase!
       .from('tasks')
       .update(updates)
       .eq('id', id)
@@ -200,7 +200,7 @@ export function useTasks(listId?: string | null) {
       prevTasks.map((t) => (t.id === id ? { ...t, scheduled_time: scheduledTime } : t))
     )
 
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase!
       .from('tasks')
       .update({ scheduled_time: scheduledTime })
       .eq('id', id)
@@ -237,7 +237,7 @@ export function useTasks(listId?: string | null) {
 
     setLocalTasks((prevTasks) => prevTasks.filter((task) => task.id !== id))
 
-    const { error } = await supabase.from('tasks').delete().eq('id', id)
+    const { error } = await supabase!.from('tasks').delete().eq('id', id)
 
     if (error) {
       fetchTasks()
