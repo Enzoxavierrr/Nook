@@ -122,8 +122,8 @@ function showBrowserNotification(title: string, body: string) {
   if ('Notification' in window && Notification.permission === 'granted') {
     new Notification(title, {
       body,
-      icon: '/logo.png',
-      badge: '/logo.png',
+      icon: '/Icon.svg',
+      badge: '/Icon.svg',
     })
   }
 }
