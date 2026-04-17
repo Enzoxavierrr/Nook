@@ -78,7 +78,7 @@ export function MobileMenu({ open, onOpenChange }: MobileMenuProps) {
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
                 <h1 className="text-2xl font-bold font-[Poppins]">
-                  <span className="text-primary">Fiz</span>Tarefa
+                  No<span className="text-primary">ok</span>
                 </h1>
                 <button
                   onClick={() => onOpenChange(false)}

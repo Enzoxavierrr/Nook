@@ -486,7 +486,7 @@ function TasksPage() {
           <Menu className="h-6 w-6" />
         </Button>
         <h1 className="text-xl font-bold font-[Poppins]">
-          <span className="text-primary">Fiz</span>Tarefa
+          No<span className="text-primary">ok</span>
         </h1>
         <div className="w-10" />
       </div>

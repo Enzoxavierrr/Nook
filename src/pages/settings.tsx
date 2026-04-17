@@ -756,7 +756,7 @@ function HelpSection() {
       {/* Version */}
       <div className="text-center pt-4">
         <p className="text-sm text-muted-foreground font-[Poppins]">
-          FizTarefa v1.0.0
+          Nook v1.0.0
         </p>
         <p className="text-xs text-muted-foreground/60 font-[Poppins]">
           Feito com ❤️ no Brasil
@@ -828,7 +828,7 @@ function SettingsPage() {
           <Menu className="h-6 w-6" />
         </Button>
         <h1 className="text-xl font-bold font-[Poppins]">
-          <span className="text-primary">Fiz</span>Tarefa
+          No<span className="text-primary">ok</span>
         </h1>
         <div className="w-10" />
       </div>

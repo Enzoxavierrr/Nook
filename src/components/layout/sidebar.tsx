@@ -36,7 +36,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
             {!collapsed && (
-              <h1 className="text-xl font-bold text-sidebar-foreground">FizTarefa</h1>
+              <h1 className="text-xl font-bold text-sidebar-foreground">No<span className="text-primary">ok</span></h1>
             )}
             <Button
               variant="ghost"

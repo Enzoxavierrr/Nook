@@ -5,7 +5,7 @@ export function SetupPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
       <div className="mb-8 text-center">
-        <h1 className="text-4xl font-bold text-foreground mb-2">FizTarefa</h1>
+        <h1 className="text-4xl font-bold text-foreground mb-2">Nook</h1>
         <p className="text-muted-foreground">
           Configuração necessária
         </p>
@@ -18,7 +18,7 @@ export function SetupPage() {
             <CardTitle>Supabase não configurado</CardTitle>
           </div>
           <CardDescription>
-            Para usar o FizTarefa, você precisa configurar o Supabase.
+            Para usar o Nook, você precisa configurar o Supabase.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

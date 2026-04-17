@@ -57,7 +57,7 @@ export function AuthPage() {
             <h2 className="text-lg font-semibold">Supabase não configurado</h2>
           </div>
           <p className="text-muted-foreground">
-            Para usar o FizTarefa, você precisa configurar o Supabase primeiro.
+            Para usar o Nook, você precisa configurar o Supabase primeiro.
           </p>
           <Link to="/setup">
             <Button className="w-full">Ir para configuração</Button>
@@ -154,7 +154,7 @@ export function AuthPage() {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-4xl xl:text-5xl font-bold mb-4 font-[Poppins]">
-              <span className="text-primary">Fiz</span>Tarefa
+              No<span className="text-primary">ok</span>
             </h1>
             <p className="text-lg xl:text-xl text-sidebar-foreground/60 mb-8 xl:mb-12 font-[Poppins]">
               Transforme sua produtividade com foco e organização
@@ -201,7 +201,7 @@ export function AuthPage() {
           {/* Mobile Logo */}
           <div className="lg:hidden mb-6 text-center">
             <h1 className="text-2xl sm:text-3xl font-bold font-[Poppins]">
-              <span className="text-primary">Fiz</span>Tarefa
+              No<span className="text-primary">ok</span>
             </h1>
           </div>
 

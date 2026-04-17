@@ -97,7 +97,7 @@ function Sidebar() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
           >
-            <span className="text-primary">Fiz</span>Tarefa
+            No<span className="text-primary">ok</span>
           </motion.h1>
         )}
       </div>
