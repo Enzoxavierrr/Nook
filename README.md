@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="public/Icon.svg" width="80" />
+</p>
+
 # Nook
 
 Aplicação de gerenciamento de tarefas e produtividade, construída com React, TypeScript e Supabase.
