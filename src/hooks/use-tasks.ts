@@ -2,25 +2,28 @@ import { useEffect, useState, useMemo } from 'react'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuth } from './use-auth'
 import { useGuestStore } from '@/stores/guest-store'
+import { useGuestDataStore } from '@/stores/guest-data-store'
 import type { Task } from '@/types'
 import { toast } from 'sonner'
 
 export function useTasks(listId?: string | null) {
   const { user, isGuestMode } = useAuth()
   const { guestUser } = useGuestStore()
-  const [tasks, setTasks] = useState<Task[]>([])
+  const guestData = useGuestDataStore()
+  const [localTasks, setLocalTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
 
+  // Em modo guest, lê diretamente da store persistente
+  const tasks = isGuestMode ? guestData.tasks : localTasks
+
   useEffect(() => {
-    // Modo guest: apenas inicializa com array vazio
     if (isGuestMode) {
-      setTasks([])
       setLoading(false)
       return
     }
 
     if (!isSupabaseConfigured || !user) {
-      setTasks([])
+      setLocalTasks([])
       setLoading(false)
       return
     }
@@ -49,13 +52,7 @@ export function useTasks(listId?: string | null) {
   }, [user, listId, isGuestMode])
 
   const fetchTasks = async () => {
-    if (!user) return
-
-    // Modo guest: não precisa buscar do Supabase, apenas atualiza loading
-    if (isGuestMode) {
-      setLoading(false)
-      return
-    }
+    if (!user || isGuestMode) return
 
     let query = supabase
       .from('tasks')
@@ -74,7 +71,7 @@ export function useTasks(listId?: string | null) {
       toast.error('Erro ao carregar tarefas')
       console.error(error)
     } else {
-      setTasks(data || [])
+      setLocalTasks(data || [])
     }
     setLoading(false)
   }
@@ -92,7 +89,6 @@ export function useTasks(listId?: string | null) {
   const createTask = async (taskData: CreateTaskData | string, listId?: string | null) => {
     if (!user) return { error: new Error('Usuário não autenticado') }
 
-    // Modo guest: criar tarefa apenas em memória
     if (isGuestMode && guestUser) {
       const newTask: Task = typeof taskData === 'string'
         ? {
@@ -126,18 +122,12 @@ export function useTasks(listId?: string | null) {
             created_at: new Date().toISOString(),
           }
 
-      setTasks(prevTasks => {
-        const filtered = listId 
-          ? prevTasks.filter(t => t.list_id === listId || !t.list_id)
-          : prevTasks
-        return [newTask, ...filtered]
-      })
+      guestData.addTask(newTask)
       toast.success('Tarefa criada!')
       return { data: newTask, error: null }
     }
 
-    // Modo normal: usar Supabase
-    const insertData = typeof taskData === 'string' 
+    const insertData = typeof taskData === 'string'
       ? {
           user_id: user.id,
           title: taskData,
@@ -171,21 +161,17 @@ export function useTasks(listId?: string | null) {
   }
 
   const updateTask = async (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'completed' | 'pomodoros_completed' | 'list_id' | 'scheduled_time' | 'start_date' | 'difficulty' | 'estimated_time'>>) => {
-    // Optimistic update
-    const updatedTask = tasks.find(t => t.id === id)
-    setTasks(prevTasks =>
-      prevTasks.map(task =>
-        task.id === id ? { ...task, ...updates } : task
-      )
-    )
-
-    // Modo guest: apenas atualizar em memória
     if (isGuestMode) {
+      guestData.updateTask(id, updates)
       toast.success('Tarefa atualizada!')
-      return { data: updatedTask ? { ...updatedTask, ...updates } : null, error: null }
+      return { data: null, error: null }
     }
 
-    // Modo normal: usar Supabase
+    // Optimistic update para modo normal
+    setLocalTasks((prevTasks) =>
+      prevTasks.map((task) => (task.id === id ? { ...task, ...updates } : task))
+    )
+
     const { data, error } = await (supabase as any)
       .from('tasks')
       .update(updates)
@@ -194,7 +180,6 @@ export function useTasks(listId?: string | null) {
       .single()
 
     if (error) {
-      // Reverte em caso de erro
       fetchTasks()
       toast.error('Erro ao atualizar tarefa')
       console.error(error)
@@ -206,20 +191,15 @@ export function useTasks(listId?: string | null) {
   }
 
   const scheduleTask = async (id: string, scheduledTime: number | null) => {
-    // Optimistic update
-    const task = tasks.find(t => t.id === id)
-    setTasks(prevTasks => 
-      prevTasks.map(t => 
-        t.id === id ? { ...t, scheduled_time: scheduledTime } : t
-      )
-    )
-
-    // Modo guest: apenas atualizar em memória
     if (isGuestMode) {
-      return { data: task ? { ...task, scheduled_time: scheduledTime } : null, error: null }
+      guestData.updateTask(id, { scheduled_time: scheduledTime })
+      return { data: null, error: null }
     }
 
-    // Modo normal: usar Supabase
+    setLocalTasks((prevTasks) =>
+      prevTasks.map((t) => (t.id === id ? { ...t, scheduled_time: scheduledTime } : t))
+    )
+
     const { data, error } = await (supabase as any)
       .from('tasks')
       .update({ scheduled_time: scheduledTime })
@@ -228,11 +208,8 @@ export function useTasks(listId?: string | null) {
       .single()
 
     if (error) {
-      // Reverte se houver erro
-      setTasks(prevTasks => 
-        prevTasks.map(t => 
-          t.id === id ? { ...t, scheduled_time: t.scheduled_time } : t
-        )
+      setLocalTasks((prevTasks) =>
+        prevTasks.map((t) => (t.id === id ? { ...t, scheduled_time: t.scheduled_time } : t))
       )
       toast.error('Erro ao agendar tarefa')
       console.error(error)
@@ -242,49 +219,27 @@ export function useTasks(listId?: string | null) {
   }
 
   const toggleTaskComplete = async (id: string, completed: boolean) => {
-    // Optimistic update - atualiza a UI imediatamente
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === id ? { ...task, completed } : task
-      )
-    )
-    
-    const result = await updateTask(id, { completed })
-    
-    // Se houver erro, reverte a mudança
-    if (result.error) {
-      setTasks(prevTasks => 
-        prevTasks.map(task => 
-          task.id === id ? { ...task, completed: !completed } : task
-        )
-      )
-    }
-    
-    return result
+    return updateTask(id, { completed })
   }
 
   const incrementPomodoros = async (id: string) => {
     const task = tasks.find((t) => t.id === id)
     if (!task) return { error: new Error('Tarefa não encontrada') }
-
     return updateTask(id, { pomodoros_completed: task.pomodoros_completed + 1 })
   }
 
   const deleteTask = async (id: string) => {
-    // Optimistic update - remove a tarefa imediatamente da UI
-    setTasks(prevTasks => prevTasks.filter(task => task.id !== id))
-
-    // Modo guest: apenas remover da memória
     if (isGuestMode) {
+      guestData.removeTask(id)
       toast.success('Tarefa excluída!')
       return { error: null }
     }
 
-    // Modo normal: usar Supabase
+    setLocalTasks((prevTasks) => prevTasks.filter((task) => task.id !== id))
+
     const { error } = await supabase.from('tasks').delete().eq('id', id)
 
     if (error) {
-      // Reverte em caso de erro - recarrega as tarefas
       fetchTasks()
       toast.error('Erro ao excluir tarefa')
       console.error(error)
@@ -299,10 +254,9 @@ export function useTasks(listId?: string | null) {
     return tasks.find((task) => task.id === id)
   }
 
-  // Filtrar tarefas por listId quando necessário
   const filteredTasks = useMemo(() => {
     if (!listId) return tasks
-    return tasks.filter(t => t.list_id === listId)
+    return tasks.filter((t) => t.list_id === listId)
   }, [tasks, listId])
 
   return {
@@ -318,4 +272,3 @@ export function useTasks(listId?: string | null) {
     refetch: fetchTasks,
   }
 }
-

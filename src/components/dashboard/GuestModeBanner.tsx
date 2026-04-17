@@ -30,7 +30,7 @@ export function GuestModeBanner() {
                 Modo Demonstração
               </p>
               <p className="text-xs text-muted-foreground">
-                Seus dados não serão salvos. Crie uma conta para salvar seu progresso.
+                Seus dados são salvos por 20 minutos. Crie uma conta para salvar permanentemente.
               </p>
             </div>
           </div>
