@@ -1,8 +1,12 @@
--- FizTarefa Database Schema
+-- Nook Database Schema
 -- Execute este SQL no Supabase SQL Editor
 
+-- Limpar tabelas existentes (ordem inversa por causa das foreign keys)
+drop table if exists tasks cascade;
+drop table if exists lists cascade;
+
 -- Listas de tarefas
-create table if not exists lists (
+create table lists (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users not null,
   name text not null,
@@ -11,7 +15,7 @@ create table if not exists lists (
 );
 
 -- Tarefas
-create table if not exists tasks (
+create table tasks (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users not null,
   list_id uuid references lists on delete cascade,
