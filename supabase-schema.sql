@@ -27,6 +27,7 @@ create table tasks (
   estimated_time int default 60,
   start_date timestamptz default now(),
   deadline timestamptz,
+  scheduled_time int,
   created_at timestamptz default now()
 );
 
