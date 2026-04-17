@@ -1,4 +1,4 @@
--- FizTarefa Migration - Adicionar novos campos à tabela tasks
+-- Nook Migration - Adicionar novos campos à tabela tasks
 -- Execute este SQL no Supabase SQL Editor se você já criou a tabela tasks anteriormente
 
 -- Adicionar coluna difficulty (nível de dificuldade 0-100)

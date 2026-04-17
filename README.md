@@ -1,8 +1,8 @@
-# 📋 FizTarefa
+# 📋 Nook
 
 Uma aplicação moderna de gerenciamento de tarefas e produtividade, construída com React, TypeScript e Supabase.
 
-![FizTarefa Dashboard](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow)
+![Nook Dashboard](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow)
 ![React](https://img.shields.io/badge/React-19.2-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1-cyan)
@@ -51,8 +51,8 @@ Uma aplicação moderna de gerenciamento de tarefas e produtividade, construída
 
 1. **Clone o repositório**
 ```bash
-git clone https://github.com/seu-usuario/fiztarefa.git
-cd fiztarefa
+git clone https://github.com/seu-usuario/nook.git
+cd nook
 ```
 
 2. **Instale as dependências**
