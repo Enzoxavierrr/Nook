@@ -9,6 +9,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  CreditCard,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/use-auth"
@@ -26,6 +27,7 @@ const navItems: NavItem[] = [
   { icon: CheckSquare, label: "Task's", href: "/tasks" },
   { icon: Calendar, label: "Calendário", href: "/calendar" },
   { icon: Timer, label: "Timer", href: "/timer" },
+  { icon: CreditCard, label: "Finanças", href: "/finances" },
   { icon: Settings, label: "Configurações", href: "/settings" },
 ]
 
@@ -106,7 +108,7 @@ function Sidebar() {
       <nav className="flex-1 space-y-2">
         {navItems.map((item) => (
           <button
-            key={item.label}
+            key={item.href}
             onClick={() => navigate(item.href)}
             title={isCollapsed ? item.label : undefined}
             className={cn(

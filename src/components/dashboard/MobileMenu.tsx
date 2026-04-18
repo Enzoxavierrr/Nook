@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Home, CheckSquare, Calendar, Timer, Settings, LogOut } from "lucide-react"
+import { X, Home, CheckSquare, Calendar, Timer, Settings, LogOut, CreditCard } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/use-auth"
 import { toast } from "sonner"
@@ -16,6 +16,7 @@ const navItems: NavItem[] = [
   { icon: CheckSquare, label: "Task's", href: "/tasks" },
   { icon: Calendar, label: "Calendário", href: "/calendar" },
   { icon: Timer, label: "Timer", href: "/timer" },
+  { icon: CreditCard, label: "Finanças", href: "/finances" },
   { icon: Settings, label: "Configurações", href: "/settings" },
 ]
 

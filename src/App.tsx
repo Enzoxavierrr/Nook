@@ -13,6 +13,7 @@ import { TimerPage } from '@/pages/timer'
 import { CalendarPage } from '@/pages/calendar'
 import { SettingsPage } from '@/pages/settings'
 import { ResetPasswordPage } from '@/pages/reset-password'
+import { FinancesPage } from '@/pages/finances'
 import {
   Sidebar,
   WelcomeHeader,
@@ -171,6 +172,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/finances"
+            element={
+              <ProtectedRoute>
+                <FinancesPage />
               </ProtectedRoute>
             }
           />
