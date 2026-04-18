@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react'
+import { Check, Clock } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { useTasks } from '@/hooks/use-tasks'
 import { usePomodoroStore } from '@/stores/pomodoro-store'
@@ -51,8 +51,9 @@ export function TaskSelector() {
             </div>
             <span className="truncate">{task.title}</span>
             {task.pomodoros_completed > 0 && (
-              <span className="ml-auto text-xs text-muted-foreground">
-                {task.pomodoros_completed} 🍅
+              <span className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
+                <Clock className="w-3 h-3" />
+                {task.pomodoros_completed}
               </span>
             )}
           </button>

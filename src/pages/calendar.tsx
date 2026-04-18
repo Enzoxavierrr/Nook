@@ -234,7 +234,7 @@ function DaySchedule({ date, tasks, scheduledTasks, onScheduleTask, onUnschedule
             
             {unscheduledTasks.length === 0 ? (
               <p className="text-sm text-muted-foreground/60 font-[Poppins] text-center py-8">
-                Todas as tarefas foram agendadas! 🎉
+                Todas as tarefas foram agendadas!
               </p>
             ) : (
               <div className="space-y-2">
@@ -258,8 +258,8 @@ function DaySchedule({ date, tasks, scheduledTasks, onScheduleTask, onUnschedule
                           {task.title}
                         </p>
                         <p className="text-xs text-muted-foreground font-[Poppins] mt-1">
-                          ⏱️ {task.estimated_time < 60 
-                            ? `${task.estimated_time}min` 
+                          <Clock className="w-3 h-3 inline mr-1" />{task.estimated_time < 60
+                            ? `${task.estimated_time}min`
                             : `${Math.floor(task.estimated_time / 60)}h ${task.estimated_time % 60 > 0 ? `${task.estimated_time % 60}min` : ''}`}
                         </p>
                       </div>
@@ -668,7 +668,7 @@ function CalendarPage() {
                     </h4>
                     {scheduledHour !== undefined && (
                       <p className="text-xs text-primary font-[Poppins] mt-1">
-                        🕐 {scheduledHour.toString().padStart(2, '0')}:00 - {(scheduledHour + Math.ceil(task.estimated_time / 60)).toString().padStart(2, '0')}:00
+                        <Clock className="w-3 h-3 inline mr-1" />{scheduledHour.toString().padStart(2, '0')}:00 – {(scheduledHour + Math.ceil(task.estimated_time / 60)).toString().padStart(2, '0')}:00
                       </p>
                     )}
                     {task.description && (

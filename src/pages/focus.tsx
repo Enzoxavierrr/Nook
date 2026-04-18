@@ -42,7 +42,7 @@ export function FocusPage() {
             <strong className="text-foreground">3. Pausa longa (15 min):</strong> Após 4 ciclos, faça uma pausa maior.
           </p>
           <p className="pt-2">
-            Cada ciclo completo de foco é contado como um 🍅 pomodoro na sua tarefa!
+            Cada ciclo completo de foco é contado como um pomodoro na sua tarefa!
           </p>
         </CardContent>
       </Card>

@@ -307,7 +307,7 @@ export function CreateTaskPage() {
                 </RadioGroup>
                 
                 <p className="text-sm text-muted-foreground mt-4 font-[Poppins]">
-                  💡 Isso equivale a aproximadamente{' '}
+                  Isso equivale a aproximadamente{' '}
                   <strong className="text-foreground">
                     {Math.ceil(parseInt(formData.estimatedTime) / 25)} pomodoros
                   </strong>

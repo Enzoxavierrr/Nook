@@ -60,8 +60,8 @@ export function PomodoroBackground() {
         const isLongBreak = phase === 'long-break'
         toast.success(
           isLongBreak
-            ? '🎉 Pausa longa! Você completou 4 ciclos!'
-            : '☕ Hora da pausa! Descanse um pouco.',
+            ? 'Pausa longa! Você completou 4 ciclos.'
+            : 'Hora da pausa! Descanse um pouco.',
           { duration: 5000 }
         )
         
@@ -73,7 +73,7 @@ export function PomodoroBackground() {
             : 'Descanse um pouco antes do próximo foco.'
         )
       } else {
-        toast.info('💪 Hora de focar! Vamos trabalhar.', { duration: 5000 })
+        toast.info('Hora de focar! Vamos trabalhar.', { duration: 5000 })
         showBrowserNotification('Hora de Focar!', 'Vamos voltar ao trabalho.')
       }
 

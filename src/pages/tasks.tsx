@@ -182,7 +182,8 @@ function TaskCard({ task, onToggleComplete, onDelete, onEdit }: TaskCardProps) {
             {/* Pomodoros */}
             {task.pomodoros_completed > 0 && (
               <div className="flex items-center gap-1.5 text-xs font-medium text-primary font-[Poppins]">
-                🍅 {task.pomodoros_completed}
+                <Clock className="w-3 h-3" />
+                {task.pomodoros_completed}
               </div>
             )}
           </div>

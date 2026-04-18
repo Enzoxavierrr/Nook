@@ -14,21 +14,21 @@ const phaseConfig = {
     color: "from-amber-600 to-amber-800",
     bgColor: "bg-amber-900/20",
     icon: Brain,
-    message: "Hora de focar! ☕",
+    message: "Hora de focar!",
   },
   "short-break": {
     label: "Pausa Curta",
     color: "from-emerald-500 to-emerald-700",
     bgColor: "bg-emerald-900/20",
     icon: Coffee,
-    message: "Descanse um pouco! 🌿",
+    message: "Descanse um pouco!",
   },
   "long-break": {
     label: "Pausa Longa",
     color: "from-blue-500 to-blue-700",
     bgColor: "bg-blue-900/20",
     icon: Sparkles,
-    message: "Você merece! ✨",
+    message: "Você merece!",
   },
 }
 
@@ -440,7 +440,7 @@ function TimerPage() {
           transition={{ delay: 0.5 }}
           className="text-sm text-muted-foreground/60 font-[Poppins] text-center max-w-md"
         >
-          💡 Dica: A cada 4 pomodoros de foco, você ganha uma pausa longa de 15 minutos!
+          Dica: A cada 4 pomodoros de foco, você ganha uma pausa longa de 15 minutos.
         </motion.p>
       </main>
       </div>
