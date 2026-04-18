@@ -12,7 +12,7 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { isSupabaseConfigured } from '@/lib/supabase'
 
-type AuthMode = 'login' | 'register'
+type AuthMode = 'login' | 'register' | 'forgot-password'
 
 const features = [
   {
@@ -39,7 +39,7 @@ const features = [
 
 export function AuthPage() {
   // Todos os hooks devem ser chamados antes de qualquer lógica condicional
-  const { user, loading, signIn, signUp } = useAuth()
+  const { user, loading, signIn, signUp, resetPassword } = useAuth()
   const { enableGuestMode, isGuestMode } = useGuestStore()
   const navigate = useNavigate()
   const [mode, setMode] = useState<AuthMode>('login')
@@ -92,7 +92,15 @@ export function AuthPage() {
     setIsSubmitting(true)
 
     try {
-      if (mode === 'login') {
+      if (mode === 'forgot-password') {
+        const { error } = await resetPassword(email)
+        if (error) {
+          toast.error(error.message)
+        } else {
+          toast.success('Link de recuperação enviado! Verifique seu email.')
+          setMode('login')
+        }
+      } else if (mode === 'login') {
         const { error } = await signIn(email, password)
         if (error) {
           toast.error(error.message)
@@ -208,12 +216,14 @@ export function AuthPage() {
           {/* Form Header */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-foreground mb-2">
-              {mode === 'login' ? 'Bem-vindo de volta' : 'Criar sua conta'}
+              {mode === 'login' ? 'Bem-vindo de volta' : mode === 'register' ? 'Criar sua conta' : 'Recuperar senha'}
             </h2>
             <p className="text-muted-foreground">
-              {mode === 'login' 
-                ? 'Entre para continuar sua jornada de produtividade' 
-                : 'Comece a organizar suas tarefas hoje'}
+              {mode === 'login'
+                ? 'Entre para continuar sua jornada de produtividade'
+                : mode === 'register'
+                ? 'Comece a organizar suas tarefas hoje'
+                : 'Digite seu email para receber o link de recuperação'}
             </p>
           </div>
 
@@ -272,68 +282,108 @@ export function AuthPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                disabled={isSubmitting}
-                className="h-12"
-              />
-            </div>
+            <AnimatePresence mode="wait">
+            {mode !== 'forgot-password' && (
+              <motion.div
+                key="password-field"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto', transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] } }}
+                exit={{ opacity: 0, height: 0, transition: { duration: 0.25, ease: [0.4, 0, 1, 1] } }}
+                className="space-y-2 overflow-hidden"
+              >
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Senha</Label>
+                  {mode === 'login' && (
+                    <button
+                      type="button"
+                      onClick={() => setMode('forgot-password')}
+                      className="text-xs text-primary hover:underline underline-offset-4"
+                    >
+                      Esqueci minha senha
+                    </button>
+                  )}
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  disabled={isSubmitting}
+                  className="h-12"
+                />
+              </motion.div>
+            )}
+            </AnimatePresence>
 
-            <Button 
+            <Button
               type="submit"
               disabled={isSubmitting}
               className="w-full h-12 text-base font-medium"
             >
               {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              {mode === 'login' ? 'Entrar' : 'Criar conta'}
+              {mode === 'login' ? 'Entrar' : mode === 'register' ? 'Criar conta' : 'Enviar link de recuperação'}
             </Button>
           </form>
 
-          {/* Divider */}
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-background text-muted-foreground">ou</span>
-            </div>
-          </div>
+          {mode !== 'forgot-password' && (
+            <>
+              {/* Divider */}
+              <div className="relative my-8">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-background text-muted-foreground">ou</span>
+                </div>
+              </div>
+
+              {/* Guest Mode Button */}
+              <div className="mt-0 space-y-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleGuestMode}
+                  className="w-full h-12 text-base font-medium bg-primary/5 hover:bg-primary/10 border border-primary/20 hover:border-primary/30 transition-all text-foreground"
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  Navegar sem criar conta
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  Explore o app em modo demonstração
+                </p>
+              </div>
+            </>
+          )}
 
           {/* Toggle */}
-          <p className="text-center text-sm text-muted-foreground">
-            {mode === 'login' ? 'Não tem uma conta?' : 'Já tem uma conta?'}{' '}
-            <button
-              type="button"
-              onClick={toggleMode}
-              className="text-primary font-medium hover:underline underline-offset-4"
-            >
-              {mode === 'login' ? 'Criar conta' : 'Entrar'}
-            </button>
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            {mode === 'forgot-password' ? (
+              <>
+                Lembrou sua senha?{' '}
+                <button
+                  type="button"
+                  onClick={() => setMode('login')}
+                  className="text-primary font-medium hover:underline underline-offset-4"
+                >
+                  Entrar
+                </button>
+              </>
+            ) : (
+              <>
+                {mode === 'login' ? 'Não tem uma conta?' : 'Já tem uma conta?'}{' '}
+                <button
+                  type="button"
+                  onClick={toggleMode}
+                  className="text-primary font-medium hover:underline underline-offset-4"
+                >
+                  {mode === 'login' ? 'Criar conta' : 'Entrar'}
+                </button>
+              </>
+            )}
           </p>
-
-          {/* Guest Mode Button */}
-          <div className="mt-6 space-y-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={handleGuestMode}
-              className="w-full h-12 text-base font-medium bg-primary/5 hover:bg-primary/10 border border-primary/20 hover:border-primary/30 transition-all text-foreground"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              Navegar sem criar conta
-            </Button>
-            <p className="text-xs text-muted-foreground text-center">
-              Explore o app em modo demonstração
-            </p>
-          </div>
 
           {/* Features badges - Mobile */}
           <div className="lg:hidden mt-12 flex flex-wrap gap-2 justify-center">

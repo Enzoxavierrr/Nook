@@ -12,6 +12,7 @@ import { TasksPage } from '@/pages/tasks'
 import { TimerPage } from '@/pages/timer'
 import { CalendarPage } from '@/pages/calendar'
 import { SettingsPage } from '@/pages/settings'
+import { ResetPasswordPage } from '@/pages/reset-password'
 import {
   Sidebar,
   WelcomeHeader,
@@ -123,6 +124,7 @@ function App() {
         <BrowserRouter>
           <Routes>
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           {!isSupabaseConfigured && <Route path="/setup" element={<SetupPage />} />}
           <Route
             path="/"

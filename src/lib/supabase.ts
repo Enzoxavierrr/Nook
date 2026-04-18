@@ -24,7 +24,7 @@ export const supabase = isValidConfig
       auth: {
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: false, // Desabilitar detecção automática de sessão na URL
+        detectSessionInUrl: true,
         storage: typeof window !== 'undefined' ? window.localStorage : undefined,
       },
     })

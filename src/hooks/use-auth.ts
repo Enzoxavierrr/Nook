@@ -74,6 +74,24 @@ export function useAuth() {
     return { data, error }
   }
 
+  const resetPassword = async (email: string) => {
+    if (!isSupabaseConfigured || !supabase) {
+      return { error: new Error('Supabase não configurado') }
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    return { error }
+  }
+
+  const updatePassword = async (newPassword: string) => {
+    if (!isSupabaseConfigured || !supabase) {
+      return { error: new Error('Supabase não configurado') }
+    }
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    return { error }
+  }
+
   const signOut = async () => {
     // Se estiver em modo guest, apenas desabilita o modo guest
     if (isGuestMode) {
@@ -216,6 +234,8 @@ export function useAuth() {
     signUp,
     signIn,
     signOut,
+    resetPassword,
+    updatePassword,
     getUserName,
     deleteAccount,
     isGuestMode: isGuestMode || false,
