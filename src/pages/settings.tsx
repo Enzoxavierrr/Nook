@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/use-auth"
+import { useNotifications } from "@/hooks/use-notifications"
 import { toast } from "sonner"
 
 type SettingsSection = "profile" | "appearance" | "timer" | "notifications" | "privacy" | "help"
@@ -315,12 +316,17 @@ function TimerSection() {
     longBreak,
     autoStart,
     soundEnabled,
+    notifyOnWorkEnd,
+    notifyOnBreakEnd,
     setWorkDuration,
     setShortBreak,
     setLongBreak,
     setAutoStart,
     setSoundEnabled,
+    setNotifyOnWorkEnd,
+    setNotifyOnBreakEnd,
   } = useTimerSettingsStore()
+  const { isPermissionGranted, requestPermission } = useNotifications()
   
   // Aplicar mudanças de duração quando o usuário alterar (apenas se não estiver rodando)
   useEffect(() => {
@@ -371,6 +377,30 @@ function TimerSection() {
   const handleSoundChange = (enabled: boolean) => {
     setSoundEnabled(enabled)
     toast.success(enabled ? "Sons ativados" : "Sons desativados")
+  }
+
+  const handleNotifyWorkEnd = async (enabled: boolean) => {
+    if (enabled && !isPermissionGranted) {
+      const granted = await requestPermission()
+      if (!granted) {
+        toast.error("Permissão de notificação negada pelo navegador")
+        return
+      }
+    }
+    setNotifyOnWorkEnd(enabled)
+    toast.success(enabled ? "Notificação de foco ativada" : "Notificação de foco desativada")
+  }
+
+  const handleNotifyBreakEnd = async (enabled: boolean) => {
+    if (enabled && !isPermissionGranted) {
+      const granted = await requestPermission()
+      if (!granted) {
+        toast.error("Permissão de notificação negada pelo navegador")
+        return
+      }
+    }
+    setNotifyOnBreakEnd(enabled)
+    toast.success(enabled ? "Notificação de pausa ativada" : "Notificação de pausa desativada")
   }
 
   return (
@@ -465,14 +495,80 @@ function TimerSection() {
         </div>
         <Switch checked={soundEnabled} onCheckedChange={handleSoundChange} />
       </div>
+
+      {/* Notify on work end */}
+      <div className="flex items-center justify-between p-4 bg-sidebar rounded-2xl">
+        <div className="flex items-center gap-3">
+          <Bell className={cn("w-5 h-5", notifyOnWorkEnd ? "text-primary" : "text-muted-foreground")} />
+          <div>
+            <p className="font-medium font-[Poppins] text-foreground">Notificar ao fim do foco</p>
+            <p className="text-sm text-muted-foreground font-[Poppins]">
+              Aviso quando o Pomodoro terminar
+            </p>
+          </div>
+        </div>
+        <Switch checked={notifyOnWorkEnd} onCheckedChange={handleNotifyWorkEnd} />
+      </div>
+
+      {/* Notify on break end */}
+      <div className="flex items-center justify-between p-4 bg-sidebar rounded-2xl">
+        <div className="flex items-center gap-3">
+          <Bell className={cn("w-5 h-5", notifyOnBreakEnd ? "text-primary" : "text-muted-foreground")} />
+          <div>
+            <p className="font-medium font-[Poppins] text-foreground">Notificar ao fim da pausa</p>
+            <p className="text-sm text-muted-foreground font-[Poppins]">
+              Aviso quando a pausa terminar
+            </p>
+          </div>
+        </div>
+        <Switch checked={notifyOnBreakEnd} onCheckedChange={handleNotifyBreakEnd} />
+      </div>
     </motion.div>
   )
 }
 
 function NotificationsSection() {
-  const [pushEnabled, setPushEnabled] = useState(true)
+  const { permission, isPermissionGranted, requestPermission } = useNotifications()
+  const [pushEnabled, setPushEnabled] = useState(false)
   const [emailEnabled, setEmailEnabled] = useState(false)
-  const [reminderEnabled, setReminderEnabled] = useState(true)
+  const [reminderEnabled, setReminderEnabled] = useState(false)
+
+  const handlePushToggle = async (checked: boolean) => {
+    if (!checked) {
+      setPushEnabled(false)
+      return
+    }
+    const granted = await requestPermission()
+    if (granted) {
+      setPushEnabled(true)
+    } else if (permission === 'denied') {
+      toast.error('Notificações bloqueadas. Desbloqueie nas configurações do navegador.')
+    }
+  }
+
+  const handleRequestPermission = async () => {
+    const granted = await requestPermission()
+    if (granted) {
+      setPushEnabled(true)
+      toast.success('Notificações ativadas!')
+    }
+  }
+
+  const statusLabel =
+    permission === 'granted'
+      ? 'Ativado'
+      : permission === 'denied'
+        ? 'Bloqueado'
+        : permission === 'unsupported'
+          ? 'Não suportado'
+          : 'Desativado'
+
+  const statusColor =
+    permission === 'granted'
+      ? 'text-green-500'
+      : permission === 'denied'
+        ? 'text-destructive'
+        : 'text-muted-foreground'
 
   return (
     <motion.div
@@ -487,6 +583,29 @@ function NotificationsSection() {
         </p>
       </div>
 
+      {/* Status + Botão */}
+      <div className="p-4 bg-sidebar rounded-2xl space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Bell className="w-5 h-5 text-primary" />
+            <div>
+              <p className="font-medium font-[Poppins] text-foreground">Permissão do navegador</p>
+              <p className={`text-sm font-[Poppins] font-medium ${statusColor}`}>{statusLabel}</p>
+            </div>
+          </div>
+          {permission !== 'granted' && permission !== 'denied' && permission !== 'unsupported' && (
+            <Button size="sm" onClick={handleRequestPermission} className="font-[Poppins]">
+              Permitir notificações
+            </Button>
+          )}
+        </div>
+        {permission === 'denied' && (
+          <p className="text-sm text-muted-foreground font-[Poppins] bg-muted/50 rounded-xl p-3">
+            O navegador bloqueou as notificações. Para reativar, clique no cadeado na barra de endereço e altere a permissão de notificações para "Permitir".
+          </p>
+        )}
+      </div>
+
       {/* Push Notifications */}
       <div className="flex items-center justify-between p-4 bg-sidebar rounded-2xl">
         <div className="flex items-center gap-3">
@@ -498,7 +617,11 @@ function NotificationsSection() {
             </p>
           </div>
         </div>
-        <Switch checked={pushEnabled} onCheckedChange={setPushEnabled} />
+        <Switch
+          checked={pushEnabled && isPermissionGranted}
+          onCheckedChange={handlePushToggle}
+          disabled={permission === 'unsupported'}
+        />
       </div>
 
       {/* Email Notifications */}
@@ -759,7 +882,7 @@ function HelpSection() {
           Nook v1.0.0
         </p>
         <p className="text-xs text-muted-foreground/60 font-[Poppins]">
-          Feito com ❤️ no Brasil
+          Feito no Brasil
         </p>
       </div>
     </motion.div>

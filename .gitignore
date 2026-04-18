@@ -10,6 +10,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+
+# Claude Code
+CLAUDE.md
 *.local
 
 # Environment variables (IMPORTANTE: nunca commitar!)

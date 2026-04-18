@@ -1,13 +1,21 @@
 import { useEffect, useRef } from 'react'
 import { usePomodoroStore } from '@/stores/pomodoro-store'
+import { useTimerSettingsStore } from '@/stores/timer-settings-store'
+import { sendNotification } from '@/lib/notifications'
+import { playTimerSound } from '@/lib/sounds'
 import { useTasks } from './use-tasks'
 import { toast } from 'sonner'
+
+const PHASE_NOTIFICATIONS = {
+  work: { title: 'Pomodoro concluído!', body: 'Hora de descansar.' },
+  'short-break': { title: 'Pausa curta encerrada', body: 'Bora focar de novo.' },
+  'long-break': { title: 'Pausa longa encerrada', body: 'Você está pronto!' },
+} as const
 
 export function usePomodoro() {
   const store = usePomodoroStore()
   const { incrementPomodoros, getTaskById } = useTasks()
   const prevPhaseRef = useRef(store.phase)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   // Timer tick — polling a cada 250ms para compensar drift do setInterval
   useEffect(() => {
@@ -18,42 +26,39 @@ export function usePomodoro() {
     return () => clearInterval(interval)
   }, [])
 
-  // Phase change notification
+  // Phase change: sound + browser notification + toast
   useEffect(() => {
-    if (prevPhaseRef.current !== store.phase) {
-      const wasWork = prevPhaseRef.current === 'work'
-      
-      // Play notification sound
-      if (audioRef.current) {
-        audioRef.current.play().catch(() => {})
-      }
+    if (prevPhaseRef.current === store.phase) return
 
-      if (wasWork && store.currentTaskId) {
-        incrementPomodoros(store.currentTaskId)
-      }
+    const prevPhase = prevPhaseRef.current
+    const wasWork = prevPhase === 'work'
+    const { soundEnabled, notifyOnWorkEnd, notifyOnBreakEnd } = useTimerSettingsStore.getState()
 
-      // Show notification
-      if (wasWork) {
-        const isLongBreak = store.phase === 'long-break'
-        toast.success(
-          isLongBreak
-            ? '🎉 Pausa longa! Você completou 4 ciclos!'
-            : '☕ Hora da pausa! Descanse um pouco.'
-        )
-      } else {
-        toast.info('💪 Hora de focar! Vamos trabalhar.')
-      }
+    if (soundEnabled) playTimerSound()
 
-      prevPhaseRef.current = store.phase
+    const shouldNotify = wasWork ? notifyOnWorkEnd : notifyOnBreakEnd
+    if (shouldNotify) {
+      const { title, body } = PHASE_NOTIFICATIONS[prevPhase]
+      sendNotification(title, { body })
     }
+
+    if (wasWork && store.currentTaskId) {
+      incrementPomodoros(store.currentTaskId)
+    }
+
+    if (wasWork) {
+      const isLongBreak = store.phase === 'long-break'
+      toast.success(
+        isLongBreak
+          ? 'Pausa longa! Você completou 4 ciclos.'
+          : 'Hora da pausa! Descanse um pouco.'
+      )
+    } else {
+      toast.info('Hora de focar! Vamos trabalhar.')
+    }
+
+    prevPhaseRef.current = store.phase
   }, [store.phase, store.currentTaskId])
-
-  // Browser notification permission
-  useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission()
-    }
-  }, [])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -91,7 +96,5 @@ export function usePomodoro() {
     getPhaseLabel,
     getPhaseColor,
     currentTask,
-    audioRef,
   }
 }
-
