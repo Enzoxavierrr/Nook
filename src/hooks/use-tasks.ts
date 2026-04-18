@@ -47,7 +47,7 @@ export function useTasks(listId?: string | null) {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      supabase?.removeChannel(channel)
     }
   }, [user, listId, isGuestMode])
 
@@ -71,7 +71,7 @@ export function useTasks(listId?: string | null) {
       toast.error('Erro ao carregar tarefas')
       console.error(error)
     } else {
-      setLocalTasks(data || [])
+      setLocalTasks((data as Task[]) || [])
     }
     setLoading(false)
   }

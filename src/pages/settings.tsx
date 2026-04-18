@@ -168,9 +168,9 @@ function AppearanceSection() {
   
   const [accentColor, setAccentColor] = useState(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("accentColor") || "yellow"
+      return localStorage.getItem("accentColor") || "purple"
     }
-    return "yellow"
+    return "purple"
   })
 
   // Sincronizar com o tema atual quando o componente monta
@@ -215,7 +215,7 @@ function AppearanceSection() {
 
   // Aplicar cor salva ao montar
   useEffect(() => {
-    const savedColor = localStorage.getItem("accentColor") || "yellow"
+    const savedColor = localStorage.getItem("accentColor") || "purple"
     const selectedColor = colors.find(c => c.name === savedColor)
     if (selectedColor) {
       document.documentElement.style.setProperty("--primary", selectedColor.hsl)

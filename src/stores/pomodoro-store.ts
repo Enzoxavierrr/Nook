@@ -83,14 +83,24 @@ export const usePomodoroStore = create<PomodoroStore>()(
         },
         
         tick: () => {
-          const { timeRemaining, isRunning } = get()
-          
+          const { timeRemaining, isRunning, lastTickTime } = get()
+
           if (!isRunning) return
-          
-          if (timeRemaining <= 1) {
+
+          const now = Date.now()
+          const elapsedSeconds = Math.floor((now - lastTickTime) / 1000)
+
+          if (elapsedSeconds < 1) return
+
+          const newTimeRemaining = timeRemaining - elapsedSeconds
+
+          if (newTimeRemaining <= 0) {
             get().completePhase()
           } else {
-            set({ timeRemaining: timeRemaining - 1, lastTickTime: Date.now() })
+            set({
+              timeRemaining: newTimeRemaining,
+              lastTickTime: lastTickTime + elapsedSeconds * 1000,
+            })
           }
         },
         

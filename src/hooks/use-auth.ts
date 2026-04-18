@@ -120,18 +120,16 @@ export function useAuth() {
     // Tenta fazer logout no Supabase de forma completamente assíncrona
     // Não espera a resposta para evitar bloqueios ou erros
     if (isSupabaseConfigured && supabase && typeof supabase.auth !== 'undefined') {
-      // Executa de forma assíncrona sem bloquear
+      const client = supabase
       setTimeout(() => {
         try {
-          supabase.auth.signOut({ scope: 'local' }).catch(() => {
-            // Silenciosamente ignora qualquer erro
-          })
+          client.auth.signOut({ scope: 'local' }).catch(() => {})
         } catch {
-          // Ignora qualquer exceção
+          // ignora
         }
       }, 0)
     }
-    
+
     return { error: null }
   }
 
@@ -209,13 +207,12 @@ export function useAuth() {
       
       // Tenta fazer logout no Supabase de forma assíncrona (não bloqueia)
       if (isSupabaseConfigured && supabase && typeof supabase.auth !== 'undefined') {
+        const client = supabase
         setTimeout(() => {
           try {
-            supabase.auth.signOut({ scope: 'local' }).catch(() => {
-              // Silenciosamente ignora qualquer erro
-            })
+            client.auth.signOut({ scope: 'local' }).catch(() => {})
           } catch {
-            // Ignora qualquer exceção
+            // ignora
           }
         }, 0)
       }

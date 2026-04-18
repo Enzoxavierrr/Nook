@@ -9,11 +9,11 @@ export function usePomodoro() {
   const prevPhaseRef = useRef(store.phase)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
-  // Timer tick
+  // Timer tick — polling a cada 250ms para compensar drift do setInterval
   useEffect(() => {
     const interval = setInterval(() => {
       store.tick()
-    }, 1000)
+    }, 250)
 
     return () => clearInterval(interval)
   }, [])

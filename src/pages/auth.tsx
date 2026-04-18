@@ -112,8 +112,8 @@ export function AuthPage() {
         const { data, error } = await signUp(email, password, name)
         if (error) {
           toast.error(error.message)
-        } else if (data.user) {
-          if (data.session) {
+        } else if (data?.user) {
+          if (data?.session) {
             toast.success('Conta criada com sucesso!')
             navigate('/', { replace: true })
           } else {

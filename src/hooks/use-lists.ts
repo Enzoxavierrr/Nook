@@ -47,7 +47,7 @@ export function useLists() {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      supabase?.removeChannel(channel)
     }
   }, [user, isGuestMode])
 
@@ -64,7 +64,7 @@ export function useLists() {
       toast.error('Erro ao carregar listas')
       console.error(error)
     } else {
-      setLocalLists(data || [])
+      setLocalLists((data as List[]) || [])
     }
     setLoading(false)
   }

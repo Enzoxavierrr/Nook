@@ -23,6 +23,7 @@ export interface Database {
           color?: string | null
           created_at?: string
         }
+        Relationships: []
       }
       tasks: {
         Row: {
@@ -70,8 +71,12 @@ export interface Database {
           scheduled_time?: number | null
           created_at?: string
         }
+        Relationships: []
       }
     }
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: Record<string, never>
   }
 }
 
