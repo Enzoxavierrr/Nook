@@ -3,9 +3,11 @@ import { motion } from "framer-motion"
 import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sidebar, MobileMenu, GuestModeBanner } from "@/components/dashboard"
+import { PDFUpload } from "@/components/finances"
 
 function FinancesPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [rawText, setRawText] = useState<string | null>(null)
 
   return (
     <div className="min-h-screen bg-background p-2 sm:p-4 pt-16 lg:pt-4">
@@ -45,6 +47,14 @@ function FinancesPage() {
                 Controle suas receitas e despesas
               </p>
             </div>
+
+            <PDFUpload onParsed={(text) => setRawText(text)} onReset={() => setRawText(null)} />
+
+            {rawText && (
+              <p className="text-xs text-muted-foreground font-[Poppins]">
+                {rawText.length} caracteres extraídos — pronto para análise.
+              </p>
+            )}
           </motion.div>
         </main>
       </div>

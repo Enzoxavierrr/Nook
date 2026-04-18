@@ -1,1 +1,1 @@
-export {}
+export { PDFUpload } from './PDFUpload'
