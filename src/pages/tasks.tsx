@@ -474,9 +474,9 @@ function TasksPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-2 sm:p-4">
+    <div className="min-h-screen bg-background p-2 sm:p-4 pt-16 lg:pt-4">
       {/* Mobile Menu Button */}
-      <div className="lg:hidden mb-4 flex items-center justify-between">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between bg-background/95 backdrop-blur border-b border-border px-4 h-14">
         <Button
           variant="ghost"
           size="icon"
