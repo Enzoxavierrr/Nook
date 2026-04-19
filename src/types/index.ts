@@ -27,6 +27,39 @@ export interface Task {
   created_at: string
 }
 
+export type Category =
+  | 'Alimentação'
+  | 'Transporte'
+  | 'Lazer'
+  | 'Assinaturas'
+  | 'Saúde'
+  | 'Compras'
+  | 'Outros'
+
+// Local type — parser output, input to the database layer
+export interface Transaction {
+  merchant: string
+  amount: number
+  date: string        // ISO 8601: YYYY-MM-DD
+  category: Category
+  raw?: string
+}
+
+// Database row — returned by Supabase after insert/select
+export interface DbTransaction extends Transaction {
+  id: string
+  user_id: string
+  upload_id: string | null
+  created_at: string
+}
+
+export interface FinancialUpload {
+  id: string
+  user_id: string
+  filename: string
+  uploaded_at: string
+}
+
 export type PomodoroPhase = 'work' | 'short-break' | 'long-break'
 
 export interface PomodoroState {

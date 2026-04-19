@@ -25,6 +25,62 @@ export interface Database {
         }
         Relationships: []
       }
+      financial_uploads: {
+        Row: {
+          id: string
+          user_id: string
+          filename: string
+          uploaded_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          filename: string
+          uploaded_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          filename?: string
+          uploaded_at?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          id: string
+          user_id: string
+          upload_id: string | null
+          merchant: string
+          amount: number
+          date: string
+          category: string
+          raw: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          upload_id?: string | null
+          merchant: string
+          amount: number
+          date: string
+          category?: string
+          raw?: string | null
+          created_at?: string
+        }
+        Update: {
+          category?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_upload_id_fkey"
+            columns: ["upload_id"]
+            referencedRelation: "financial_uploads"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       tasks: {
         Row: {
           id: string
