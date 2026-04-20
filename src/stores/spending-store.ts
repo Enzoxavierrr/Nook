@@ -12,6 +12,7 @@ export interface SpendingStore {
   uploads: FinancialUpload[]
   filters: SpendingFilters
 
+  replaceAll: (uploads: FinancialUpload[], transactions: DbTransaction[]) => void
   addTransactions: (transactions: DbTransaction[], upload: FinancialUpload) => void
   removeUpload: (uploadId: string) => void
   setFilterMes: (mes: string | null) => void
@@ -24,12 +25,10 @@ const DEFAULT_FILTERS: SpendingFilters = { mes: null, categoria: null }
 
 const YYYY_MM = /^\d{4}-(?:0[1-9]|1[0-2])$/
 
-// #3 — selector externo; não serializado, sem acoplamento ao estado persistido
 export function selectFilteredTransactions(state: SpendingStore): DbTransaction[] {
   const { transactions, filters } = state
   return transactions.filter((tx) => {
     if (filters.mes && !tx.date.startsWith(filters.mes)) return false
-    // #1 — .trim() defende contra espaços vindos de runtime string (Supabase retorna string, não union)
     if (filters.categoria && tx.category?.trim() !== filters.categoria) return false
     return true
   })
@@ -40,9 +39,11 @@ export const useSpendingStore = create<SpendingStore>()(
     (set) => ({
       transactions: [],
       uploads: [],
-      filters: { ...DEFAULT_FILTERS },  // #4 — spread evita referência compartilhada
+      filters: { ...DEFAULT_FILTERS },
 
-      // #2 — guard de idempotência: re-upload do mesmo arquivo não duplica dados
+      replaceAll: (uploads, transactions) =>
+        set({ uploads, transactions, filters: { ...DEFAULT_FILTERS } }),
+
       addTransactions: (transactions, upload) =>
         set((state) => {
           if (state.uploads.some((u) => u.id === upload.id)) return state
@@ -58,7 +59,6 @@ export const useSpendingStore = create<SpendingStore>()(
           transactions: state.transactions.filter((t) => t.upload_id !== uploadId),
         })),
 
-      // #6 — rejeita silenciosamente formato inválido (ex: '2025-4')
       setFilterMes: (mes) => {
         if (mes !== null && !YYYY_MM.test(mes)) return
         set((state) => ({ filters: { ...state.filters, mes } }))
@@ -67,16 +67,14 @@ export const useSpendingStore = create<SpendingStore>()(
       setFilterCategoria: (categoria) =>
         set((state) => ({ filters: { ...state.filters, categoria } })),
 
-      // #8 — setter combinado para atualização parcial de vários filtros de uma vez
       setFilter: (partial) =>
         set((state) => ({ filters: { ...state.filters, ...partial } })),
 
       clearData: () =>
-        set({ transactions: [], uploads: [], filters: { ...DEFAULT_FILTERS } }),  // #4
+        set({ transactions: [], uploads: [], filters: { ...DEFAULT_FILTERS } }),
     }),
     {
       name: 'spending-storage',
-      // #7 — exclui `raw` da serialização (~500 KB economizados em 200 transações)
       partialize: (state) => ({
         uploads: state.uploads,
         transactions: state.transactions.map(({ raw: _raw, ...rest }) => rest),
