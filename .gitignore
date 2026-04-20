@@ -13,7 +13,11 @@ dist-ssr
 
 # Claude Code
 CLAUDE.md
+memory/
 *.local
+
+# Test files
+public/Fatura-Teste.pdf
 
 # Environment variables (IMPORTANTE: nunca commitar!)
 .env
